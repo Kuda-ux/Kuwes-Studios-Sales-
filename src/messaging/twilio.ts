@@ -54,26 +54,55 @@ export function makeTwilioAdapter(): MessagingAdapter {
     name: 'twilio',
     async send(to, message) {
       const rendered = render(message);
-      const res = await client.messages.create({
-        from,
-        to: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,
-        ...rendered,
-      });
-      // Audit-log the outgoing message so it appears in /admin/conversations
-      // and is visible to any UI reading from the Message table.
-      const customer = await prisma.customer.findUnique({ where: { phone: to.replace(/^whatsapp:/, '') } });
-      if (customer) {
-        await prisma.message.create({
-          data: {
-            customerId: customer.id,
-            direction: 'out',
-            body: rendered.body ?? '',
-            payload: message as any,
-            providerId: res.sid,
-          },
-        });
+      const toAddr = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+      const bodyPreview = (rendered.body ?? '').slice(0, 80).replace(/\n/g, ' ');
+
+      // WhatsApp body cap is 1600 chars — anything longer rejects with code 63016.
+      // Truncate defensively rather than crash the whole turn.
+      if (rendered.body && rendered.body.length > 1500) {
+        rendered.body = rendered.body.slice(0, 1490) + '\n…';
       }
-      return { providerId: res.sid };
+
+      let providerId: string | undefined;
+      try {
+        const res = await client.messages.create({ from, to: toAddr, ...rendered });
+        providerId = res.sid;
+        console.log(`[twilio.send] ok sid=${res.sid} to=${toAddr} kind=${message.kind} preview="${bodyPreview}"`);
+      } catch (err: any) {
+        // Twilio errors carry a numeric .code (e.g. 63016 = freeform outside 24h window,
+        // 63015 = template required, 21610 = unsubscribed, 21408 = unverified sandbox).
+        console.error('[twilio.send] FAILED', {
+          to: toAddr,
+          kind: message.kind,
+          code: err?.code,
+          status: err?.status,
+          message: err?.message,
+          moreInfo: err?.moreInfo,
+          preview: bodyPreview,
+        });
+        // Swallow the error so subsequent messages in the same turn still attempt to send,
+        // and the engine can move forward. The webhook layer will still return 200 to Twilio.
+      }
+
+      // Audit-log the outgoing message regardless of send outcome.
+      try {
+        const customer = await prisma.customer.findUnique({ where: { phone: to.replace(/^whatsapp:/, '') } });
+        if (customer) {
+          await prisma.message.create({
+            data: {
+              customerId: customer.id,
+              direction: 'out',
+              body: rendered.body ?? '',
+              payload: message as any,
+              providerId,
+            },
+          });
+        }
+      } catch (logErr) {
+        console.error('[twilio.send] audit-log failed', logErr);
+      }
+
+      return { providerId };
     },
   };
 }
