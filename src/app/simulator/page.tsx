@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KUWEX } from '@/config/kuwex';
 
 type Msg = {
   id: string;
@@ -94,19 +93,23 @@ export default function SimulatorPage() {
     <main className="min-h-screen bg-[#0B141A] text-wa-text">
       <div className="mx-auto flex h-screen max-w-md flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between bg-[#202C33] px-4 py-3">
+        <header className="flex items-center justify-between border-b border-white/5 bg-ink-700 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-accent text-sm font-bold text-brand-900">
-              KX
+            <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-accent/40 shadow-glow">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpg" alt="Kuwex Studios" className="h-full w-full object-cover" />
             </div>
             <div>
-              <div className="font-semibold leading-tight">{KUWEX.brand.name}</div>
-              <div className="text-xs text-wa-muted">Online • Bot</div>
+              <div className="font-semibold leading-tight">Kuwex <span className="text-accent">Studios</span></div>
+              <div className="flex items-center gap-1.5 text-xs text-wa-muted">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+                Online • AI Assistant
+              </div>
             </div>
           </div>
-          <div className="flex gap-2 text-xs">
-            <button onClick={newCustomer} className="rounded-md bg-white/5 px-2 py-1 hover:bg-white/10" title="New customer phone">New 👤</button>
-            <button onClick={reset} className="rounded-md bg-white/5 px-2 py-1 hover:bg-white/10">Reset</button>
+          <div className="flex gap-1 text-xs">
+            <button onClick={newCustomer} className="rounded-full bg-white/5 px-3 py-1 text-ink-100 transition hover:bg-white/10 hover:text-white" title="New customer phone">New</button>
+            <button onClick={reset} className="rounded-full bg-white/5 px-3 py-1 text-ink-100 transition hover:bg-white/10 hover:text-white">Reset</button>
           </div>
         </header>
 
@@ -147,10 +150,11 @@ export default function SimulatorPage() {
           />
           <button
             type="submit"
-            className="grid h-10 w-10 place-items-center rounded-full bg-accent text-brand-900 hover:bg-accent-600 hover:text-white"
+            disabled={loading}
+            className="grid h-10 w-10 place-items-center rounded-full bg-accent text-black shadow-glow transition hover:bg-accent-400 disabled:opacity-50"
             aria-label="Send"
           >
-            ➤
+            <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden><path d="M2 10l16-7-7 16-2-7-7-2z" /></svg>
           </button>
         </form>
       </div>
@@ -174,7 +178,7 @@ function Bubble({ msg, onTap }: { msg: Msg; onTap: (id: string, label: string) =
               <button
                 key={b.id}
                 onClick={() => onTap(b.id, b.title)}
-                className="rounded-md bg-white/5 px-3 py-1.5 text-xs text-accent-500 hover:bg-white/10"
+                className="rounded-md border border-accent/20 bg-accent/5 px-3 py-1.5 text-xs font-medium text-accent transition hover:border-accent/50 hover:bg-accent/15"
               >
                 {b.title}
               </button>

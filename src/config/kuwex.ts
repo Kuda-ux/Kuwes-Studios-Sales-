@@ -8,8 +8,8 @@ export const KUWEX = {
     name: 'Kuwex Studios',
     tagline: 'Smart Digital Solutions for Africa',
     logoText: 'KUWEX',
-    primary: '#1E1B4B',
-    accent: '#10B981',
+    primary: '#000000',
+    accent: '#1CA4FF',
   },
   contact: {
     phone: '+263 71 906 6891',
