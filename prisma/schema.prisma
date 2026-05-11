@@ -1,0 +1,88 @@
+// Kuwex WhatsApp Commerce & Automation Platform
+// Switch `provider` to "sqlite" + url "file:./dev.db" for zero-setup local dev.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  phone         String   @unique
+  name          String?
+  email         String?
+  businessName  String?
+  tags          String[] @default([])
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  session       Session?
+  messages      Message[]
+  tickets       Ticket[]
+  leads         Lead[]
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  customerId  String   @unique
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  flowId      String?
+  stepId      String?
+  // Free-form collected data for the active flow (JSON).
+  data        Json     @default("{}")
+  // When true, bot stops auto-replying (handover to human).
+  paused      Boolean  @default(false)
+  lastSeenAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  direction   String   // "in" | "out"
+  channel     String   @default("whatsapp")
+  body        String
+  // For interactive replies, the raw payload (button id, list id, media url, etc.)
+  payload     Json?
+  providerId  String?
+  createdAt   DateTime @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  ref         String   @unique  // e.g. KX-WEB-2026-0001
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        String   // website | ecommerce | marketing | branding | ai | whatsapp_automation | seo | social | quote | callback
+  title       String
+  status      String   @default("new") // new | in_progress | quoted | won | lost | closed
+  priority    String   @default("normal") // low | normal | high | urgent
+  budget      String?
+  timeline    String?
+  data        Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  source      String   @default("whatsapp")
+  service     String?
+  stage       String   @default("new") // new | qualified | contacted | converted | lost
+  score       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

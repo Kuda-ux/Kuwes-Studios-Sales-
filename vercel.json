@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "src/app/api/twilio/webhook/route.ts": { "maxDuration": 30 },
+    "src/app/api/simulator/send/route.ts": { "maxDuration": 30 }
+  }
+}
