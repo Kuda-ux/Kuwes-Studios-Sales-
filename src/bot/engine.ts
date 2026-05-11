@@ -151,9 +151,12 @@ async function processStep(args: ProcessArgs): Promise<{ reply: OutgoingMessage[
 
 /* ---------------- Reply consumption ---------------- */
 
-type Consumed =
-  | { error?: undefined; patch?: Record<string, any>; chosenId?: string; multiselectDone?: boolean }
-  | { error: string };
+type Consumed = {
+  error?: string;
+  patch?: Record<string, any>;
+  chosenId?: string;
+  multiselectDone?: boolean;
+};
 
 async function consumeReply(step: Step, text: string, input: Incoming, data: Record<string, any>): Promise<Consumed> {
   switch (step.type) {
@@ -246,7 +249,7 @@ type NextResult =
 async function resolveNext(
   flow: Flow,
   step: Step,
-  consumed: Exclude<Consumed, { error: string }>,
+  consumed: Consumed,
   data: Record<string, any>,
   customerId: string,
   phone: string,
