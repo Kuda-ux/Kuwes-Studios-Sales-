@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { prisma } from '@/lib/db';
 import type { MessagingAdapter, OutgoingMessage } from './types';
 
 /**
@@ -58,6 +59,20 @@ export function makeTwilioAdapter(): MessagingAdapter {
         to: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,
         ...rendered,
       });
+      // Audit-log the outgoing message so it appears in /admin/conversations
+      // and is visible to any UI reading from the Message table.
+      const customer = await prisma.customer.findUnique({ where: { phone: to.replace(/^whatsapp:/, '') } });
+      if (customer) {
+        await prisma.message.create({
+          data: {
+            customerId: customer.id,
+            direction: 'out',
+            body: rendered.body ?? '',
+            payload: message as any,
+            providerId: res.sid,
+          },
+        });
+      }
       return { providerId: res.sid };
     },
   };

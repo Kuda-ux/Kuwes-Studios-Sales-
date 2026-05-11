@@ -12,10 +12,11 @@
  * Designed to be stateless between calls — all state lives in Postgres.
  */
 
+import { AsyncLocalStorage } from 'async_hooks';
 import { prisma } from '@/lib/db';
 import { ticketRef } from '@/lib/ids';
 import { getAdapter } from '@/messaging';
-import type { OutgoingMessage } from '@/messaging/types';
+import type { MessagingAdapter, OutgoingMessage } from '@/messaging/types';
 import { COPY } from './copy';
 import { FLOWS, getFlow } from './flows';
 import type { Flow, Step, StepContext } from './flow-types';
@@ -23,11 +24,29 @@ import { getOrCreateCustomer, loadSession, resetSession, saveSession } from './s
 
 type Incoming = { from: string; text?: string; payloadId?: string; mediaUrl?: string };
 
+/** Per-request adapter override via AsyncLocalStorage so concurrent
+ * webhook + simulator invocations on the same Node instance can't
+ * clobber each other. */
+const adapterStore = new AsyncLocalStorage<MessagingAdapter>();
+function activeAdapter(): MessagingAdapter {
+  return adapterStore.getStore() ?? getAdapter();
+}
+
 const RESET_KEYWORDS = ['menu', 'start', 'restart', 'hi', 'hello', 'hey', 'hie'];
 const HANDOVER_KEYWORDS = ['agent', 'human', 'support', 'team'];
 const RESUME_KEYWORDS = ['menu', 'bot', 'restart'];
 
-export async function handleIncoming(input: Incoming): Promise<{ reply?: OutgoingMessage[] }> {
+export async function handleIncoming(
+  input: Incoming,
+  opts?: { adapter?: MessagingAdapter },
+): Promise<{ reply?: OutgoingMessage[] }> {
+  if (opts?.adapter) {
+    return await adapterStore.run(opts.adapter, () => _handleIncoming(input));
+  }
+  return await _handleIncoming(input);
+}
+
+async function _handleIncoming(input: Incoming): Promise<{ reply?: OutgoingMessage[] }> {
   const phone = normalizePhone(input.from);
   const customer = await getOrCreateCustomer(phone);
   const session = await loadSession(customer.id);
@@ -407,7 +426,7 @@ async function renderStep(step: Step, ctx: StepContext): Promise<OutgoingMessage
 /* ---------------- Dispatch ---------------- */
 
 async function dispatch(phone: string, messages: OutgoingMessage[]) {
-  const adapter = getAdapter();
+  const adapter = activeAdapter();
   for (const msg of messages) {
     await adapter.send(phone, msg);
   }
@@ -424,7 +443,7 @@ function normalizePhone(raw: string): string {
 async function notifyAdmin(ref: string, title: string, type: string, customerPhone: string) {
   const adminPhone = process.env.ADMIN_NOTIFY_PHONE;
   if (!adminPhone) return;
-  const adapter = getAdapter();
+  const adapter = activeAdapter();
   await adapter.send(adminPhone, {
     kind: 'text',
     body:

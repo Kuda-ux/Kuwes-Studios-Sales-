@@ -18,6 +18,7 @@ export default function SimulatorPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Initial phone (random by default to simulate different customers)
@@ -48,13 +49,20 @@ export default function SimulatorPage() {
   async function send(text: string, payloadId?: string) {
     if (!text.trim() && !payloadId) return;
     setLoading(true);
+    setErrorMsg(null);
     try {
-      await fetch('/api/simulator/send', {
+      const res = await fetch('/api/simulator/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: phone, text, payloadId }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setErrorMsg(body?.error ?? `Server error (${res.status})`);
+      }
       await fetchHistory(phone);
+    } catch (e: any) {
+      setErrorMsg(e?.message ?? 'Network error');
     } finally {
       setLoading(false);
     }
@@ -106,6 +114,15 @@ export default function SimulatorPage() {
         <div className="bg-[#111B21] px-4 py-2 text-xs text-wa-muted">
           Simulating customer: <span className="font-mono text-wa-text">{phone}</span>
         </div>
+
+        {errorMsg && (
+          <div className="border-b border-rose-900/50 bg-rose-950/60 px-4 py-2 text-xs text-rose-200">
+            <strong>Error:</strong> {errorMsg}
+            <div className="mt-1 text-rose-300/70">
+              Visit <a className="underline" href="/api/health" target="_blank">/api/health</a> to check the DB connection.
+            </div>
+          </div>
+        )}
 
         {/* Chat */}
         <div ref={scrollRef} className="wa-scroll flex-1 space-y-1 overflow-y-auto bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22/>')] bg-[#0B141A] px-3 py-4">
