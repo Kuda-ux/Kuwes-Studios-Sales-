@@ -5,25 +5,25 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Kuwex Studios — Smart Digital Solutions for Africa',
+  title: 'Kuwex Sales AI — 24/7 WhatsApp Sales Agent',
   description:
-    'We build websites, brands, AI automations and WhatsApp commerce systems that help African businesses scale. Talk to us on WhatsApp in under 60 seconds.',
+    'An in-house AI sales agent built by Kuwex Studios. It greets every WhatsApp prospect, qualifies the lead, generates a ticket, and notifies the team — automatically, around the clock.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://kuwex.co.zw'),
   icons: {
     icon: [{ url: '/logo.jpg', type: 'image/jpeg' }],
     apple: '/logo.jpg',
   },
   openGraph: {
-    title: 'Kuwex Studios — Smart Digital Solutions for Africa',
+    title: 'Kuwex Sales AI — 24/7 WhatsApp Sales Agent',
     description:
-      'Websites, branding, AI automation and WhatsApp commerce systems built for African businesses.',
+      'Your always-on AI sales agent on WhatsApp. Built in-house at Kuwex Studios.',
     images: ['/logo.jpg'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kuwex Studios',
-    description: 'Smart Digital Solutions for Africa.',
+    title: 'Kuwex Sales AI',
+    description: '24/7 WhatsApp sales agent built by Kuwex Studios.',
     images: ['/logo.jpg'],
   },
 };
