@@ -29,8 +29,6 @@ export default function Home() {
 
       <Capabilities />
 
-      <ArchitectureSection />
-
       <CtaSection />
 
       <SiteFooter />
@@ -60,7 +58,6 @@ function SiteHeader() {
       <nav className="hidden items-center gap-1 text-sm md:flex">
         <NavLink href="#how">How it works</NavLink>
         <NavLink href="#features">Capabilities</NavLink>
-        <NavLink href="#stack">Tech stack</NavLink>
         <NavLink href="/simulator">Live demo</NavLink>
         <NavLink href="/admin">Admin</NavLink>
       </nav>
@@ -315,61 +312,6 @@ function Capabilities() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ============================================================ */
-/*  ARCHITECTURE / TECH STACK                                    */
-/* ============================================================ */
-
-function ArchitectureSection() {
-  const stack = [
-    { label: 'Frontend', value: 'Next.js 14 · React · Tailwind' },
-    { label: 'Database', value: 'Postgres on Neon · Prisma ORM' },
-    { label: 'Messaging', value: 'Twilio WhatsApp · Webhook + Adapter pattern' },
-    { label: 'Hosting', value: 'Vercel · Edge functions · Auto-scaling' },
-    { label: 'Conversation engine', value: 'In-house flow DSL · stateful · resumable' },
-    { label: 'Concurrency', value: 'AsyncLocalStorage adapter scoping' },
-  ];
-
-  return (
-    <section id="stack" className="relative z-10 border-t border-white/5 bg-black/60 py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="grid gap-14 md:grid-cols-[1fr_1.1fr] md:items-center">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Architecture</div>
-            <h2 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-              Engineered <span className="kx-gradient-text">in-house.</span>
-            </h2>
-            <p className="mt-4 text-ink-100">
-              The Sales AI is a Kuwex Studios original. Every line of the
-              flow engine, adapter layer, and admin console was built and
-              owned by us — no third-party chatbot SaaS, no vendor lock-in,
-              no per-message fees beyond the Twilio carrier cost.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/simulator" className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-black shadow-glow transition hover:bg-accent-400">
-                Test it live <ArrowIcon className="h-4 w-4" />
-              </Link>
-              <a href={`${PARENT_SITE}/portfolio`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-accent/40">
-                See the studio's work <ExternalIcon className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-ink-700/60 to-black p-2">
-            <div className="grid divide-y divide-white/5">
-              {stack.map((row) => (
-                <div key={row.label} className="grid grid-cols-[120px_1fr] items-center gap-4 px-5 py-4">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-200">{row.label}</div>
-                  <div className="text-sm text-white">{row.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>

@@ -360,6 +360,15 @@ async function resolveNext(
   const idx = flow.steps.findIndex((s) => s.id === step.id);
   const next = flow.steps[idx + 1];
   if (!next) return { kind: 'done' };
+
+  // Auto-chain into terminal / no-prompt steps so the customer receives
+  // the ticket confirmation in the SAME turn they completed the form —
+  // not on their next message. Without this, submit/goto steps would
+  // render as an empty reply because they have no prompt.
+  if (next.type === 'submit' || next.type === 'goto') {
+    return await resolveNext(flow, next, consumed, data, customerId, phone);
+  }
+
   return { kind: 'step', step: next };
 }
 
